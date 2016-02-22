@@ -44,17 +44,35 @@ public final class ObfuscatedHttpRequestTest {
             (contentType, body) -> body.replace("s3cr3t", "f4k3"));
 
     @Test
-    public void shouldNotFailOnInvalidUri() {
-        final String invalidUri = "/af.cgi?_browser_out=.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2Fetc%2Fpasswd";
-        final ObfuscatedHttpRequest invalidRequest = new ObfuscatedHttpRequest(
-                MockHttpRequest.builder()
-                               .requestUri(invalidUri)
-                               .build(),
-                Obfuscator.none(),
-                Obfuscator.obfuscate("_browser_out"::equalsIgnoreCase, "unknown"),
-                BodyObfuscator.none());
+    public void shouldObfuscateInvalidUris() {
+        final String invalidPath = "/af.cgi?_browser_out=.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2Fetc%2Fpasswd&foo=bar#fragment";
+        final HttpRequest invalidRequest = buildInvalidRequest(invalidPath, Obfuscator.obfuscate("_browser_out"::equalsIgnoreCase, "unknown"));
 
-        assertThat(invalidRequest.getRequestUri(), is(invalidUri));
+        assertThat(invalidRequest.getRequestUri(), is("/af.cgi?_browser_out=unknown&foo=bar#fragment"));
+    }
+
+    @Test
+    public void shouldNotFailOnInvalidUrisWithEmptyQueryString() {
+        final String invalidPath = "/unterminated_percent_%F?";
+        final HttpRequest invalidRequest = buildInvalidRequest(invalidPath, Obfuscator.none());
+
+        assertThat(invalidRequest.getRequestUri(), is("/unterminated_percent_%F?"));
+    }
+
+    @Test
+    public void shouldNotFailOnInvalidUrisWithQueryStringOnly() {
+        final String invalidPath = "/unterminated_percent_%F?q";
+        final HttpRequest invalidRequest = buildInvalidRequest(invalidPath, Obfuscator.none());
+
+        assertThat(invalidRequest.getRequestUri(), is("/unterminated_percent_%F?q"));
+    }
+
+    @Test
+    public void shouldNotFailOnInvalidUrisWithFragmentOnly() {
+        final String invalidPath = "/unterminated_percent_%F#";
+        final HttpRequest invalidRequest = buildInvalidRequest(invalidPath, Obfuscator.none());
+
+        assertThat(invalidRequest.getRequestUri(), is("/unterminated_percent_%F#"));
     }
 
     @Test
@@ -95,6 +113,14 @@ public final class ObfuscatedHttpRequestTest {
     @Test
     public void shouldObfuscateBodyContent() throws IOException {
         assertThat(new String(unit.getBody(), unit.getCharset()), is("My secret is f4k3"));
+    }
+
+    private static ObfuscatedHttpRequest buildInvalidRequest(final String path, final Obfuscator parameterObfuscator) {
+        return new ObfuscatedHttpRequest(
+                MockHttpRequest.builder().requestUri(path).build(),
+                Obfuscator.none(),
+                parameterObfuscator,
+                BodyObfuscator.none());
     }
 
 }

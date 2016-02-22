@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import static com.google.common.collect.Multimaps.transformEntries;
 
@@ -56,24 +57,50 @@ final class ObfuscatedHttpRequest extends ForwardingHttpRequest {
     public String getRequestUri() {
         final String requestUri = super.getRequestUri();
 
-        final URI parsedUri;
-        try {
-            parsedUri = new URI(requestUri);
-        } catch (final URISyntaxException invalid) {
-            // It's an invalid URI, so the parameters
-            // cannot be extracted for obfuscation.
-            return requestUri;
-        }
+        return parseUri(requestUri).map(this::obfuscateUri)
+                                   .orElseGet(() -> lenientObfuscateUri(requestUri));
+    }
 
-        final QueryParameters parameters = QueryParameters.parse(parsedUri.getQuery());
+    private String obfuscateUri(final URI uri) {
+        final QueryParameters parameters = QueryParameters.parse(uri.getQuery());
 
         if (parameters.isEmpty()) {
-            return requestUri;
+            return uri.toASCIIString();
         }
 
         final String queryString = parameters.obfuscate(parameterObfuscator).toString();
 
-        return createUri(parsedUri, queryString).toASCIIString();
+        return createUri(uri, queryString).toASCIIString();
+    }
+
+    private String lenientObfuscateUri(final String uri) {
+        final int startOfQuery = uri.indexOf('?');
+
+        if (startOfQuery < 0) {
+            return uri;
+        }
+
+        final int startOfFragment = uri.indexOf('#', startOfQuery);
+        final String query = startOfFragment < 0 ? uri.substring(startOfQuery + 1)
+                                                 : uri.substring(startOfQuery + 1, startOfFragment);
+
+        final QueryParameters parameters = QueryParameters.parse(query);
+
+        if (parameters.isEmpty()) {
+            return uri;
+        }
+
+        final String queryString = parameters.obfuscate(parameterObfuscator).toString();
+        return startOfFragment < 0 ? uri.substring(0, startOfQuery + 1) + queryString
+                                   : uri.substring(0, startOfQuery + 1) + queryString + uri.substring(startOfFragment);
+    }
+
+    private static Optional<URI> parseUri(final String uri) {
+        try {
+            return Optional.of(new URI(uri));
+        } catch (final URISyntaxException invalid) {
+            return Optional.empty();
+        }
     }
 
     @VisibleForTesting
@@ -91,7 +118,7 @@ final class ObfuscatedHttpRequest extends ForwardingHttpRequest {
         return obfuscate(delegate().getHeaders(), headerObfuscator);
     }
 
-    private Multimap<String, String> obfuscate(final Multimap<String, String> values, final Obfuscator obfuscator) {
+    private static Multimap<String, String> obfuscate(final Multimap<String, String> values, final Obfuscator obfuscator) {
         return transformEntries(values, obfuscator::obfuscate);
     }
 
