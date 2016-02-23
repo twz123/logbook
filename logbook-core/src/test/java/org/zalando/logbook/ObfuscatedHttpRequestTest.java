@@ -25,7 +25,6 @@ import org.junit.Test;
 import java.io.IOException;
 
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.is;
@@ -40,22 +39,8 @@ public final class ObfuscatedHttpRequestTest {
             .body("My secret is s3cr3t")
             .build(),
             KeyedObfuscator.authorization(),
-            Obfuscator.replacement("unknown").forKeys("password"::equalsIgnoreCase),
+            requestUri -> "replaced " + requestUri,
             (contentType, body) -> body.replace("s3cr3t", "f4k3"));
-
-    @Test
-    public void shouldNotFailOnInvalidUri() {
-        final String invalidUri = "/af.cgi?_browser_out=.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2F.|.%2Fetc%2Fpasswd";
-        final ObfuscatedHttpRequest invalidRequest = new ObfuscatedHttpRequest(
-                MockHttpRequest.builder()
-                               .requestUri(invalidUri)
-                               .build(),
-                KeyedObfuscator.none(),
-                Obfuscator.replacement("unknown").forKeys("_browser_out"::equalsIgnoreCase),
-                BodyObfuscator.none());
-
-        assertThat(invalidRequest.getRequestUri(), is(invalidUri));
-    }
 
     @Test
     public void shouldObfuscateAuthorizationHeader() {
@@ -68,23 +53,8 @@ public final class ObfuscatedHttpRequestTest {
     }
 
     @Test
-    public void shouldNotObfuscateEmptyQueryString() {
-        final ObfuscatedHttpRequest request = new ObfuscatedHttpRequest(MockHttpRequest.create(),
-                KeyedObfuscator.none(),
-                Obfuscator.replacement("*").forAnyKey(),
-                BodyObfuscator.none());
-
-        assertThat(request.getRequestUri(), is("http://localhost/"));
-    }
-
-    @Test
-    public void shouldObfuscatePasswordButNotLimitParameter() {
-        assertThat(unit.getRequestUri(), containsString("password=unknown"));
-    }
-
-    @Test
-    public void shouldNotObfuscateLimitParameter() {
-        assertThat(unit.getRequestUri(), containsString("limit=1"));
+    public void shouldObfuscateRequestTarget() {
+        assertThat(unit.getRequestUri(), is("replaced /?password=1234&limit=1"));
     }
 
     @Test

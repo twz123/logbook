@@ -47,6 +47,7 @@ import org.zalando.logbook.HttpLogWriter;
 import org.zalando.logbook.JsonHttpLogFormatter;
 import org.zalando.logbook.Logbook;
 import org.zalando.logbook.Obfuscator;
+import org.zalando.logbook.RequestUriObfuscators;
 import org.zalando.logbook.KeyedObfuscator;
 import org.zalando.logbook.servlet.LogbookFilter;
 import org.zalando.logbook.servlet.Strategy;
@@ -108,13 +109,13 @@ public class LogbookAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(Logbook.class)
     public Logbook logbook(final KeyedObfuscator headerObfuscator,
-            final KeyedObfuscator parameterObfuscator,
+            final Obfuscator requestUriObfuscator,
             final BodyObfuscator bodyObfuscator,
             @SuppressWarnings("SpringJavaAutowiringInspection") final HttpLogFormatter formatter,
             final HttpLogWriter writer) {
         return Logbook.builder()
                 .headerObfuscator(headerObfuscator)
-                .parameterObfuscator(parameterObfuscator)
+                .requestUriObfuscator(requestUriObfuscator)
                 .bodyObfuscator(bodyObfuscator)
                 .formatter(formatter)
                 .writer(writer)
@@ -128,6 +129,12 @@ public class LogbookAutoConfiguration {
         return headers.isEmpty() ?
                 authorization() :
                 createObfuscator(headers, String::equalsIgnoreCase);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(name = "requestUriObfuscator")
+    public Obfuscator requestUriObfuscator() {
+        return RequestUriObfuscators.obfuscateQueryString(parameterObfuscator());
     }
 
     @Bean

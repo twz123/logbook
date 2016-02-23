@@ -37,6 +37,13 @@ public final class ObfuscatorTest {
     }
 
     @Test
+    public void forAnyKeyShouldObfuscateAllKeys() {
+        final KeyedObfuscator unit = Obfuscator.replacement("foo").forAnyKey();
+
+        assertThat(unit.obfuscate("press", "any key"), is(equalTo("foo")));
+    }
+
+    @Test
     public void compoundShouldObfuscateInOrder() {
         final Obfuscator unit = Obfuscator.compound(value -> "1 " + value, value -> "2 " + value);
 

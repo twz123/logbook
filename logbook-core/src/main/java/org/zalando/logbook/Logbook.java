@@ -38,7 +38,7 @@ public interface Logbook {
     static Logbook create(@Nullable final HttpLogFormatter formatter,
             @Nullable final HttpLogWriter writer,
             @Nullable final KeyedObfuscator headerObfuscator,
-            @Nullable final KeyedObfuscator parameterObfuscator,
+            @Nullable final Obfuscator requestUriObfuscator,
             @Nullable final BodyObfuscator bodyObfuscator) {
 
         return new DefaultLogbook(
@@ -46,9 +46,8 @@ public interface Logbook {
                 firstNonNull(writer, new DefaultHttpLogWriter()),
                 new Obfuscation(
                         firstNonNull(headerObfuscator, KeyedObfuscator.none()),
-                        firstNonNull(parameterObfuscator, KeyedObfuscator.none()),
+                        firstNonNull(requestUriObfuscator, Obfuscator.none()),
                         firstNonNull(bodyObfuscator, BodyObfuscator.none())));
     }
-
 
 }

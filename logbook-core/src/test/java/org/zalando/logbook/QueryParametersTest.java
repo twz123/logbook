@@ -96,6 +96,12 @@ public final class QueryParametersTest {
         assertThat(parse("c=3&d=4&a=1&e=5&b=2"), hasToString("c=3&d=4&a=1&e=5&b=2"));
     }
 
+    @Test
+    public void shouldApplyObfuscatorToAllValues() {
+        assertThat(parse("c=3&d=4&a=1&e=5&b=2").obfuscate((k, v) -> k + '-' + v),
+                hasToString("c=c-3&d=d-4&a=a-1&e=e-5&b=b-2"));
+    }
+
     // TODO test decode/encode
 
 }
