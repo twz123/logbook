@@ -7,9 +7,9 @@
 [![Release](https://img.shields.io/github/release/zalando/logbook.svg)](https://github.com/zalando/logbook/releases)
 [![Maven Central](https://img.shields.io/maven-central/v/org.zalando/logbook-parent.svg)](https://maven-badges.herokuapp.com/maven-central/org.zalando/logbook-parent)
 
-*Logbook* is an extensible library to enable request and response logging for different client- and server-side 
-technologies. It comes with a core module `logbook-core` and specific modules per framework, e.g. 
-[`logbook-servlet`](#servlet) for Servlet 3.0 environments and [`logbook-httpclient`](#http-client) for applications 
+*Logbook* is an extensible library to enable request and response logging for different client- and server-side
+technologies. It comes with a core module `logbook-core` and specific modules per framework, e.g.
+[`logbook-servlet`](#servlet) for Servlet 3.0 environments and [`logbook-httpclient`](#http-client) for applications
 using Apache's `HttpClient`.
 
 ## Dependency
@@ -23,7 +23,7 @@ using Apache's `HttpClient`.
 ```
 ## Usage
 
-All integrations require an instance of `Logbook` which holds all configuration and wires all necessary parts together. 
+All integrations require an instance of `Logbook` which holds all configuration and wires all necessary parts together.
 You can either create one using all the defaults:
 
 ```java
@@ -51,11 +51,11 @@ default:
 ## Obfuscation
 
 The goal of *Obfuscation* is to prevent certain sensitive parts of HTTP requests and responses to be logged. This
-usually includes the *Authorization* header but could also apply to certain plaintext query or form parameters,
+usually includes the *Authorization* header but could also apply to certain plain text query or form parameters,
 e.g. *password*.
 
-Logbook differentiates between `Obfuscator` (for headers and query parameters) and `BodyObfuscator`. The default
-behaviour for all of them is to **not** obfuscate at all.
+Logbook differentiates between `Obfuscator` for plain string values,`KeyedObfuscator` for headers and query parameters,
+and `BodyObfuscator`. The default behavior for all of them is to **not** obfuscate at all.
 
 You can use predefined obfuscators:
 
@@ -70,7 +70,7 @@ or create custom ones:
 
 ```java
 Logbook logbook = Logbook.builder()
-    .parameterObfuscator(obfuscate("password"::equals, "XXX"))
+    .requestUriObfuscator(obfuscateQueryString("password"::equals, "XXX"))
     .build();
 ```
 
@@ -79,7 +79,7 @@ or combine them:
 ```java
 Logbook logbook = Logbook.builder()
     .headerObfuscator(compound(
-        authorization(), 
+        authorization(),
         obfuscate("X-Secret"::equals, "XXX")))
     .build();
 ```
@@ -179,21 +179,21 @@ Writing defines where formatted requests and responses are written to. Logback c
 
 ### Logger
 
-By default requests and responses are logged using a *slf4j* logger that uses the `org.zalando.logbook.Logbook` 
+By default requests and responses are logged using a *slf4j* logger that uses the `org.zalando.logbook.Logbook`
 category and the log level `trace`. This can be customized though:
 
 ```java
 Logbook logbook = Logbook.builder()
     .writer(new DefaultHttpLogWriter(
-        LoggerFactory.getLogger("http.wire-log"), 
+        LoggerFactory.getLogger("http.wire-log"),
         Level.DEBUG))
     .build();
 ```
 
 ### Stream
 
-An alternative implementation is logging requests and responses to a `PrintStream`, e.g. `System.out` or `System.err`. 
-This is usually a bad choice for running in production, but might be used for short-term local development and/or 
+An alternative implementation is logging requests and responses to a `PrintStream`, e.g. `System.out` or `System.err`.
+This is usually a bad choice for running in production, but might be used for short-term local development and/or
 investigations.
 
 ```java
@@ -237,7 +237,7 @@ Or programmatically via the `ServletContext`:
 
 ```java
 context.addFilter("LogbookFilter", new LogbookFilter(logbook))
-    .addMappingForUrlPatterns(EnumSet.of(REQUEST, ASYNC, ERROR), true, "/*"); 
+    .addMappingForUrlPatterns(EnumSet.of(REQUEST, ASYNC, ERROR), true, "/*");
 ```
 
 ### Security
@@ -308,16 +308,17 @@ It sets up all of the following parts automatically with sensible defaults:
 - Logging writer
 
 
-| Type                     | Name                        | Default                                    |
-|--------------------------|-----------------------------|--------------------------------------------|
-| `FilterRegistrationBean` | `unauthorizedLogbookFilter` | Based on `LogbookFilter`                   |
-| `FilterRegistrationBean` | `authorizedLogbookFilter`   | Based on `LogbookFilter`                   |
-| `Logbook`                |                             | Based on obfuscators, formatter and writer |
-| `Obfuscator`             | `headerObfuscator`          | Based on `logbook.obfuscate.headers`       |
-| `Obfuscator`             | `parameterObfuscator`       | Based on `logbook.obfuscate.parameters`    |
-| `BodyObfuscator`         |                             |`BodyObfuscator.none()`                     |
-| `HttpLogFormatter`       |                             | `JsonHttpLogFormatter`                     |
-| `HttpLogWriter`          |                             | `DefaultHttpLogWriter`                     |
+| Type                     | Name                        | Default                                       |
+|--------------------------|-----------------------------|-----------------------------------------------|
+| `FilterRegistrationBean` | `unauthorizedLogbookFilter` | Based on `LogbookFilter`                      |
+| `FilterRegistrationBean` | `authorizedLogbookFilter`   | Based on `LogbookFilter`                      |
+| `Logbook`                |                             | Based on obfuscators, formatter and writer    |
+| `KeyedObfuscator`        | `headerObfuscator`          | Based on `logbook.obfuscate.headers`          |
+| `KeyedObfuscator`        | `requestUriObfuscator`      | `obfuscateQueryString(parameterObfuscator())` |
+| `KeyedObfuscator`        | `parameterObfuscator`       | Based on `logbook.obfuscate.parameters`       |
+| `BodyObfuscator`         |                             |`BodyObfuscator.none()`                        |
+| `HttpLogFormatter`       |                             | `JsonHttpLogFormatter`                        |
+| `HttpLogWriter`          |                             | `DefaultHttpLogWriter`                        |
 
 ### Configuration
 
