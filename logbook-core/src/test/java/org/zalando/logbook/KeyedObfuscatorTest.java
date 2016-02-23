@@ -55,8 +55,8 @@ public final class KeyedObfuscatorTest {
     @Test
     public void compoundShouldObfuscateMultipleTimes() {
         final KeyedObfuscator unit = KeyedObfuscator.compound(
-                KeyedObfuscator.obfuscate((key, value) -> "XXX".equals(value), "YYY"),
-                KeyedObfuscator.obfuscate("Authorization"::equalsIgnoreCase, "XXX"));
+                Obfuscator.replacement("YYY").forPairs((key, value) -> "XXX".equals(value)),
+                Obfuscator.replacement("XXX").forKeys("Authorization"::equalsIgnoreCase));
 
         assertThat(unit.obfuscate("Authorization", "Bearer c61a8f84-6834-11e5-a607-10ddb1ee7671"),
                 is(equalTo("YYY")));
@@ -65,9 +65,9 @@ public final class KeyedObfuscatorTest {
     @Test
     public void compoundShouldObfuscateOnlyMatchingEntries() {
         final KeyedObfuscator unit = KeyedObfuscator.compound(
-                KeyedObfuscator.obfuscate((key, value) -> "XXX".equals(value), "YYY"),
-                KeyedObfuscator.obfuscate((key, value) -> "password".equals(key), "<secret>"), // this won't be used
-                KeyedObfuscator.obfuscate("Authorization"::equalsIgnoreCase, "XXX"));
+                Obfuscator.replacement("YYY").forPairs((key, value) -> "XXX".equals(value)),
+                Obfuscator.replacement("<secret>").forPairs((key, value) -> "password".equals(key)), // this won't be used
+                Obfuscator.replacement("XXX").forKeys("Authorization"::equalsIgnoreCase));
 
         assertThat(unit.obfuscate("Authorization", "Bearer c61a8f84-6834-11e5-a607-10ddb1ee7671"),
                 is(equalTo("YYY")));

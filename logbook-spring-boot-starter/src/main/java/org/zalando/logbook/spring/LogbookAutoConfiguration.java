@@ -46,6 +46,7 @@ import org.zalando.logbook.HttpLogFormatter;
 import org.zalando.logbook.HttpLogWriter;
 import org.zalando.logbook.JsonHttpLogFormatter;
 import org.zalando.logbook.Logbook;
+import org.zalando.logbook.Obfuscator;
 import org.zalando.logbook.KeyedObfuscator;
 import org.zalando.logbook.servlet.LogbookFilter;
 import org.zalando.logbook.servlet.Strategy;
@@ -62,7 +63,6 @@ import static javax.servlet.DispatcherType.ERROR;
 import static javax.servlet.DispatcherType.REQUEST;
 import static org.zalando.logbook.KeyedObfuscator.authorization;
 import static org.zalando.logbook.KeyedObfuscator.compound;
-import static org.zalando.logbook.KeyedObfuscator.obfuscate;
 
 @Configuration
 @ConditionalOnClass(Logbook.class)
@@ -138,8 +138,8 @@ public class LogbookAutoConfiguration {
 
     private KeyedObfuscator createObfuscator(final Collection<String> names, final BiPredicate<String, String> matcher) {
         return compound(names.stream()
-                .map(name -> obfuscate(actual ->
-                        matcher.test(name, actual), "XXX"))
+                .map(name -> Obfuscator.replacement("XXX").forKeys(actual ->
+                        matcher.test(name, actual)))
                 .collect(toList()));
     }
 

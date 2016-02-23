@@ -20,8 +20,6 @@ package org.zalando.logbook;
  * #L%
  */
 
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
@@ -41,14 +39,6 @@ public interface KeyedObfuscator {
         return (key, value) -> value;
     }
 
-    static KeyedObfuscator obfuscate(final Predicate<String> keyPredicate, final String replacement) {
-        return (key, value) -> keyPredicate.test(key) ? replacement : value;
-    }
-
-    static KeyedObfuscator obfuscate(final BiPredicate<String, String> predicate, final String replacement) {
-        return (key, value) -> predicate.test(key, value) ? replacement : value;
-    }
-
     static KeyedObfuscator compound(final KeyedObfuscator... obfuscators) {
         return compound(asList(obfuscators));
     }
@@ -61,7 +51,7 @@ public interface KeyedObfuscator {
     }
 
     static KeyedObfuscator authorization() {
-        return obfuscate("Authorization"::equalsIgnoreCase, "XXX");
+        return Obfuscator.replacement("XXX").forKeys("Authorization"::equalsIgnoreCase);
     }
 
 }
