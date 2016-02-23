@@ -46,7 +46,7 @@ import org.zalando.logbook.HttpLogFormatter;
 import org.zalando.logbook.HttpLogWriter;
 import org.zalando.logbook.JsonHttpLogFormatter;
 import org.zalando.logbook.Logbook;
-import org.zalando.logbook.Obfuscator;
+import org.zalando.logbook.KeyedObfuscator;
 import org.zalando.logbook.servlet.LogbookFilter;
 import org.zalando.logbook.servlet.Strategy;
 
@@ -60,9 +60,9 @@ import static java.util.stream.Collectors.toList;
 import static javax.servlet.DispatcherType.ASYNC;
 import static javax.servlet.DispatcherType.ERROR;
 import static javax.servlet.DispatcherType.REQUEST;
-import static org.zalando.logbook.Obfuscator.authorization;
-import static org.zalando.logbook.Obfuscator.compound;
-import static org.zalando.logbook.Obfuscator.obfuscate;
+import static org.zalando.logbook.KeyedObfuscator.authorization;
+import static org.zalando.logbook.KeyedObfuscator.compound;
+import static org.zalando.logbook.KeyedObfuscator.obfuscate;
 
 @Configuration
 @ConditionalOnClass(Logbook.class)
@@ -107,8 +107,8 @@ public class LogbookAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(Logbook.class)
-    public Logbook logbook(final Obfuscator headerObfuscator,
-            final Obfuscator parameterObfuscator,
+    public Logbook logbook(final KeyedObfuscator headerObfuscator,
+            final KeyedObfuscator parameterObfuscator,
             final BodyObfuscator bodyObfuscator,
             @SuppressWarnings("SpringJavaAutowiringInspection") final HttpLogFormatter formatter,
             final HttpLogWriter writer) {
@@ -123,7 +123,7 @@ public class LogbookAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "headerObfuscator")
-    public Obfuscator headerObfuscator() {
+    public KeyedObfuscator headerObfuscator() {
         final List<String> headers = properties.getObfuscate().getHeaders();
         return headers.isEmpty() ?
                 authorization() :
@@ -132,11 +132,11 @@ public class LogbookAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "parameterObfuscator")
-    public Obfuscator parameterObfuscator() {
+    public KeyedObfuscator parameterObfuscator() {
         return createObfuscator(properties.getObfuscate().getParameters(), String::equals);
     }
 
-    private Obfuscator createObfuscator(final Collection<String> names, final BiPredicate<String, String> matcher) {
+    private KeyedObfuscator createObfuscator(final Collection<String> names, final BiPredicate<String, String> matcher) {
         return compound(names.stream()
                 .map(name -> obfuscate(actual ->
                         matcher.test(name, actual), "XXX"))

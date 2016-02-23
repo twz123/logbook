@@ -22,11 +22,11 @@ package org.zalando.logbook;
 
 final class Obfuscation {
 
-    private final Obfuscator headerObfuscator;
-    private final Obfuscator parameterObfuscator;
+    private final KeyedObfuscator headerObfuscator;
+    private final KeyedObfuscator parameterObfuscator;
     private final BodyObfuscator bodyObfuscator;
 
-    Obfuscation(final Obfuscator headerObfuscator, final Obfuscator parameterObfuscator,
+    Obfuscation(final KeyedObfuscator headerObfuscator, final KeyedObfuscator parameterObfuscator,
             final BodyObfuscator bodyObfuscator) {
         this.headerObfuscator = headerObfuscator;
         this.parameterObfuscator = parameterObfuscator;

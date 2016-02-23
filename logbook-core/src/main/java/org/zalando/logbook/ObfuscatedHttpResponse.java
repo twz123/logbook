@@ -29,10 +29,10 @@ import static com.google.common.collect.Multimaps.transformEntries;
 final class ObfuscatedHttpResponse extends ForwardingHttpResponse {
 
     private final HttpResponse response;
-    private final Obfuscator headerObfuscator;
+    private final KeyedObfuscator headerObfuscator;
     private final BodyObfuscator bodyObfuscator;
 
-    ObfuscatedHttpResponse(final HttpResponse response, final Obfuscator headerObfuscator,
+    ObfuscatedHttpResponse(final HttpResponse response, final KeyedObfuscator headerObfuscator,
             final BodyObfuscator bodyObfuscator) {
         this.response = response;
         this.headerObfuscator = headerObfuscator;
@@ -49,7 +49,7 @@ final class ObfuscatedHttpResponse extends ForwardingHttpResponse {
         return obfuscate(response.getHeaders(), headerObfuscator);
     }
 
-    private Multimap<String, String> obfuscate(final Multimap<String, String> values, final Obfuscator obfuscator) {
+    private Multimap<String, String> obfuscate(final Multimap<String, String> values, final KeyedObfuscator obfuscator) {
         return transformEntries(values, obfuscator::obfuscate);
     }
 

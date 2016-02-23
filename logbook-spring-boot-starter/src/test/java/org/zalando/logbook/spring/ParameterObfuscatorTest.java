@@ -23,7 +23,7 @@ package org.zalando.logbook.spring;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
-import org.zalando.logbook.Obfuscator;
+import org.zalando.logbook.KeyedObfuscator;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -32,7 +32,7 @@ import static org.junit.Assert.assertThat;
 public final class ParameterObfuscatorTest extends AbstractTest {
 
     @Autowired
-    private Obfuscator parameterObfuscator;
+    private KeyedObfuscator parameterObfuscator;
 
     @Test
     public void shouldCreateCompoundObfuscatorFromProperties() {

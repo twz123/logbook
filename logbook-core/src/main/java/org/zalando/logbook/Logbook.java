@@ -37,16 +37,16 @@ public interface Logbook {
     @lombok.Builder(builderClassName = "Builder")
     static Logbook create(@Nullable final HttpLogFormatter formatter,
             @Nullable final HttpLogWriter writer,
-            @Nullable final Obfuscator headerObfuscator,
-            @Nullable final Obfuscator parameterObfuscator,
+            @Nullable final KeyedObfuscator headerObfuscator,
+            @Nullable final KeyedObfuscator parameterObfuscator,
             @Nullable final BodyObfuscator bodyObfuscator) {
 
         return new DefaultLogbook(
                 firstNonNull(formatter, new DefaultHttpLogFormatter()),
                 firstNonNull(writer, new DefaultHttpLogWriter()),
                 new Obfuscation(
-                        firstNonNull(headerObfuscator, Obfuscator.none()),
-                        firstNonNull(parameterObfuscator, Obfuscator.none()),
+                        firstNonNull(headerObfuscator, KeyedObfuscator.none()),
+                        firstNonNull(parameterObfuscator, KeyedObfuscator.none()),
                         firstNonNull(bodyObfuscator, BodyObfuscator.none())));
     }
 

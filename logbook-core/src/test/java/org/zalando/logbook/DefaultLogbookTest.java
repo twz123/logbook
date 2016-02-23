@@ -41,8 +41,8 @@ public final class DefaultLogbookTest {
 
     private final HttpLogFormatter formatter = mock(HttpLogFormatter.class);
     private final HttpLogWriter writer = mock(HttpLogWriter.class);
-    private final Obfuscator headerObfuscator = mock(Obfuscator.class);
-    private final Obfuscator parameterObfuscator = mock(Obfuscator.class);
+    private final KeyedObfuscator headerObfuscator = mock(KeyedObfuscator.class);
+    private final KeyedObfuscator parameterObfuscator = mock(KeyedObfuscator.class);
     private final BodyObfuscator bodyObfuscator = mock(BodyObfuscator.class);
 
     private final Logbook unit = Logbook.builder()

@@ -22,40 +22,45 @@ package org.zalando.logbook;
 
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static java.util.Arrays.asList;
 
+/**
+ * Obfuscates values of key-value pairs.
+ */
 @FunctionalInterface
-public interface Obfuscator {
+public interface KeyedObfuscator {
 
+    /**
+     * Returns the obfuscated value for the given key-value pair.
+     */
     String obfuscate(final String key, final String value);
 
-    static Obfuscator none() {
+    static KeyedObfuscator none() {
         return (key, value) -> value;
     }
 
-    static Obfuscator obfuscate(final Predicate<String> keyPredicate, final String replacement) {
+    static KeyedObfuscator obfuscate(final Predicate<String> keyPredicate, final String replacement) {
         return (key, value) -> keyPredicate.test(key) ? replacement : value;
     }
 
-    static Obfuscator obfuscate(final BiPredicate<String, String> predicate, final String replacement) {
+    static KeyedObfuscator obfuscate(final BiPredicate<String, String> predicate, final String replacement) {
         return (key, value) -> predicate.test(key, value) ? replacement : value;
     }
 
-    static Obfuscator compound(final Obfuscator... obfuscators) {
+    static KeyedObfuscator compound(final KeyedObfuscator... obfuscators) {
         return compound(asList(obfuscators));
     }
 
-    static Obfuscator compound(final Iterable<Obfuscator> obfuscators) {
+    static KeyedObfuscator compound(final Iterable<KeyedObfuscator> obfuscators) {
         return StreamSupport.stream(obfuscators.spliterator(), false)
                 .reduce(none(), (left, right) ->
                         (key, value) ->
                                 left.obfuscate(key, right.obfuscate(key, value)));
     }
 
-    static Obfuscator authorization() {
+    static KeyedObfuscator authorization() {
         return obfuscate("Authorization"::equalsIgnoreCase, "XXX");
     }
 

@@ -58,7 +58,7 @@ final class QueryParameters extends ForwardingMultimap<String, String> {
         return parameters;
     }
 
-    public QueryParameters obfuscate(final Obfuscator obfuscator) {
+    public QueryParameters obfuscate(final KeyedObfuscator obfuscator) {
         return new QueryParameters(Multimaps.transformEntries(parameters, obfuscator::obfuscate));
     }
 
